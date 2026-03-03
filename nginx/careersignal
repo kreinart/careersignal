@@ -7,7 +7,7 @@ server {
 
     # If you use Let's Encrypt, replace with the usual 80->443 redirect and add a 443 server block.
 
-    location / {dfjhdfjgdfjgdfgkjgdfgfg
+    location / {
         proxy_pass http://127.0.0.1:8010;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
