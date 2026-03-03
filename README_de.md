@@ -6,6 +6,7 @@ CareerSignal ist ein schlankes SaaS-MVP zum **Überwachen von Karriere-Seiten**:
 - Runner prüft regelmäßig: Erreichbarkeit/Blockade, Änderungen (Text-Hash), Best-effort Job-Links (ATS/Heuristik), Keyword-Treffer
 - Benachrichtigungen: **E-Mail Pflicht**, Discord optional
 
+
 > Design-Ziel: **Clean Rewrite** ohne EasyJobs-Altlasten.
 
 ---
