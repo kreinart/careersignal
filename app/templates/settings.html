@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% set active='settings' %}
+{% block title %}Einstellungen – CareerSignal{% endblock %}
+
+{% block content %}
+<section class="card" style="padding:18px;">
+  <div class="row">
+    <div class="grow">
+      <div style="font-weight:900; font-size: 18px; letter-spacing:-.02em;">Einstellungen</div>
+      <div class="sub">Benachrichtigungen &amp; Basis-Setup.</div>
+    </div>
+  </div>
+
+  <section class="card" style="padding:14px; margin-top:12px; background: rgba(255,255,255,.6);">
+    <div style="font-weight:850;">E-Mail</div>
+    {% if smtp_ok %}
+      <div class="badge" style="margin-top:10px; background: var(--success-bg); color: var(--success-fg); border: 1px solid rgba(34,197,94,.24);">
+        SMTP ist konfiguriert ✅
+      </div>
+    {% else %}
+      <div class="badge" style="margin-top:10px; background: var(--warn-bg); color: var(--warn-fg); border: 1px solid rgba(245,158,11,.25);">
+        SMTP ist nicht konfiguriert. Ohne SMTP gibt’s keine E-Mail-Benachrichtigungen.
+      </div>
+      <div class="small" style="margin-top:10px;">
+        Benötigt: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
+      </div>
+    {% endif %}
+  </section>
+
+  <form method="post" action="/settings" class="stack" style="margin-top:14px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <section class="card" style="padding:14px; background: rgba(255,255,255,.6);">
+      <div style="font-weight:850;">Benachrichtigungen</div>
+      <div class="row" style="margin-top:10px; gap:10px;">
+        <label class="chip" style="cursor:pointer; user-select:none;">
+          <input type="checkbox" name="email_notifications_enabled" value="1" {% if user.email_notifications_enabled %}checked{% endif %} style="width:auto; margin:0;">
+          <span>E-Mail Benachrichtigungen aktiv</span>
+        </label>
+      </div>
+      <div class="small" style="margin-top:8px;">
+        Hinweis: Wenn SMTP nicht gesetzt ist, können wir trotzdem nichts versenden.
+      </div>
+    </section>
+
+    <section class="card" style="padding:14px; background: rgba(255,255,255,.6);">
+      <div style="font-weight:850;">Discord (optional)</div>
+      <div class="small" style="margin-top:6px;">Gilt als Standard für alle Beobachtungen, außer eine Beobachtung überschreibt es.</div>
+      <div style="margin-top:10px;">
+        <label for="discord_webhook">Discord Webhook URL</label>
+        <input id="discord_webhook" name="discord_webhook" value="{{ user.discord_webhook or '' }}" placeholder="https://discord.com/api/webhooks/...">
+      </div>
+    </section>
+
+    <div class="row" style="justify-content:flex-end;">
+      <button class="btn btn-primary" type="submit">Speichern</button>
+    </div>
+  </form>
+</section>
+
+<section class="card" style="padding:18px;">
+  <div style="font-weight:900; letter-spacing:-.02em;">Links</div>
+  <div class="sub">Öffentliche Basis-URL (für E-Mails/Discord): <strong>{{ public_base }}</strong></div>
+</section>
+
+{% endblock %}

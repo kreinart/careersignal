@@ -1,0 +1,11 @@
+[Unit]
+Description=CareerSignal Checks Timer
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1h
+Unit=careersignal-checks.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

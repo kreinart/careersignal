@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% set active='dashboard' %}
+{% block title %}{% if mode=='new' %}Neue Beobachtung{% else %}Beobachtung bearbeiten{% endif %} – CareerSignal{% endblock %}
+
+{% block content %}
+<section class="card" style="padding:18px;">
+  <div class="row">
+    <div class="grow">
+      <div style="font-weight:900; font-size: 18px; letter-spacing:-.02em;">
+        {% if mode=='new' %}Neue Beobachtung{% else %}Beobachtung bearbeiten{% endif %}
+      </div>
+      <div class="sub">Karriere-URL rein, fertig. (Kein „KI-Zauber“, dafür verlässliche Checks.)</div>
+    </div>
+    <a class="btn" href="/">Zurück</a>
+  </div>
+
+  {% if error %}
+    <div class="badge" style="margin-top:12px; background: var(--danger-bg); color: var(--danger-fg); border: 1px solid rgba(239,68,68,.22);">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="post" action="{% if mode=='new' %}/watchers/new{% else %}/watchers/{{ watcher.id }}/edit{% endif %}" style="margin-top:14px;" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <div class="row" style="align-items:flex-end;">
+      <div class="grow" style="min-width:260px;">
+        <label for="name">Name</label>
+        <input id="name" name="name" value="{{ watcher.name }}" required placeholder="z.B. ACME GmbH – Karriere">
+      </div>
+      <div style="min-width:180px;">
+        <label class="chip" style="cursor:pointer; user-select:none;">
+          <input type="checkbox" name="is_active" value="1" {% if watcher.is_active %}checked{% endif %} style="width:auto; margin:0;">
+          <span>Aktiv</span>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <label for="url">Karriere-URL</label>
+      <input id="url" name="url" value="{{ watcher.url }}" required placeholder="https://…">
+      <div class="small" style="margin-top:6px; color: var(--muted);">
+        Best-effort: Wir prüfen Erreichbarkeit und Änderungen. Wenn geblockt/kaputt: sieht man’s im Dashboard.
+      </div>
+    </div>
+
+    <div>
+      <label for="keywords">Keywords (optional)</label>
+      <textarea id="keywords" name="keywords" placeholder="z.B. HR Business Partner, Personalentwicklung, Tarif">{{ watcher.keywords or '' }}</textarea>
+      <div class="small" style="margin-top:6px; color: var(--muted);">Komma- oder zeilengetrennt. Groß-/Kleinschreibung egal.</div>
+    </div>
+
+    <section class="card" style="padding:14px; background: rgba(255,255,255,.6);">
+      <div style="font-weight:850;">Benachrichtigungen</div>
+      <div class="row" style="margin-top:10px; gap:10px;">
+        <label class="chip" style="cursor:pointer; user-select:none;">
+          <input type="checkbox" name="notify_on_change" value="1" {% if watcher.notify_on_change %}checked{% endif %} style="width:auto; margin:0;">
+          <span>Änderung</span>
+        </label>
+        <label class="chip" style="cursor:pointer; user-select:none;">
+          <input type="checkbox" name="notify_on_new_jobs" value="1" {% if watcher.notify_on_new_jobs %}checked{% endif %} style="width:auto; margin:0;">
+          <span>Neue Jobs/Links</span>
+        </label>
+        <label class="chip" style="cursor:pointer; user-select:none;">
+          <input type="checkbox" name="notify_on_keyword" value="1" {% if watcher.notify_on_keyword %}checked{% endif %} style="width:auto; margin:0;">
+          <span>Keyword-Treffer</span>
+        </label>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label for="discord_webhook_override">Discord Webhook (optional, nur für diese Beobachtung)</label>
+        <input id="discord_webhook_override" name="discord_webhook_override" value="{{ watcher.discord_webhook_override or '' }}" placeholder="https://discord.com/api/webhooks/...">
+        <div class="small" style="margin-top:6px; color: var(--muted);">Wenn leer: es gilt der globale Webhook aus den Einstellungen (falls gesetzt).</div>
+      </div>
+    </section>
+
+    <div class="row" style="justify-content:space-between;">
+      <button class="btn btn-primary" type="submit">Speichern</button>
+      {% if mode=='edit' %}
+        <a class="btn btn-quiet" href="/watchers/{{ watcher.id }}">Zur Detailseite</a>
+      {% endif %}
+    </div>
+  </form>
+</section>
+{% endblock %}

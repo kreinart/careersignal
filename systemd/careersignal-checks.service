@@ -1,0 +1,17 @@
+[Unit]
+Description=CareerSignal Runner (run_checks.py)
+After=network.target
+
+[Service]
+Type=oneshot
+User=careersignal
+Group=careersignal
+WorkingDirectory=/home/careersignal/careersignal
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/careersignal.env
+
+ExecStart=/home/careersignal/venv/bin/python scripts/run_checks.py
+
+# Allow DB writes
+ReadWritePaths=/home/careersignal/careersignal/data
+

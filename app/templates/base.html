@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}CareerSignal{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="mark"></span>
+      <span>CareerSignal</span>
+    </div>
+
+    {% if user %}
+      <nav class="nav">
+        <a href="/" class="{% if active=='dashboard' %}active{% endif %}">Beobachtungen</a>
+        <a href="/settings" class="{% if active=='settings' %}active{% endif %}">Einstellungen</a>
+        <a href="/logout">Logout</a>
+      </nav>
+
+      <div class="user-pill">
+        <span>👋 {{ user.email }}</span>
+      </div>
+    {% else %}
+      <nav class="nav">
+        <a href="/login" class="{% if active=='login' %}active{% endif %}">Login</a>
+        <a href="/register" class="{% if active=='register' %}active{% endif %}">Registrieren</a>
+      </nav>
+    {% endif %}
+  </div>
+</header>
+
+<main class="container">
+  <div class="stack">
+
+    {% if user and smtp_ok is defined and not smtp_ok %}
+      <section class="card" style="padding:14px 16px; border-color: rgba(245,158,11,.22);">
+        <div class="row" style="align-items:flex-start;">
+          <div class="grow">
+            <div style="font-weight:850;">⚠️ E-Mail ist nicht konfiguriert</div>
+            <div class="sub">Benachrichtigungen per E-Mail sind Pflicht. Bitte SMTP_* ENV Variablen setzen.</div>
+          </div>
+          <a class="btn" href="/settings">Zu den Einstellungen</a>
+        </div>
+      </section>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+</body>
+</html>

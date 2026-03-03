@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% set active='dashboard' %}
+{% block title %}{{ watcher.name }} – CareerSignal{% endblock %}
+
+{% block content %}
+<section class="card" style="padding:14px 16px;">
+  <div class="row" style="align-items:flex-start;">
+    <div class="grow">
+      <div style="font-weight:900; font-size: 18px; letter-spacing:-.02em;">{{ watcher.name }}</div>
+      <div class="sub" style="margin-top:4px; word-break: break-all;">{{ watcher.url }}</div>
+      <div class="chips" style="margin-top:10px;">
+        {% set st = watcher.last_status or '–' %}
+        {% if st=='ok' %}
+          <span class="chip" style="background: var(--success-bg); color: var(--success-fg);">Status: <strong style="color:inherit;">OK</strong></span>
+        {% elif st=='blocked' %}
+          <span class="chip" style="background: var(--warn-bg); color: var(--warn-fg);">Status: <strong style="color:inherit;">Blockiert</strong></span>
+        {% elif st=='failed' %}
+          <span class="chip" style="background: var(--danger-bg); color: var(--danger-fg);">Status: <strong style="color:inherit;">Fehler</strong></span>
+        {% else %}
+          <span class="chip">Status: <strong>–</strong></span>
+        {% endif %}
+        <span class="chip"><span class="dot"></span> Zuletzt geprüft: <strong>{{ watcher.last_checked_at or '–' }}</strong></span>
+        {% if watcher.last_http_status %}
+          <span class="chip"><span class="dot"></span> HTTP: <strong>{{ watcher.last_http_status }}</strong></span>
+        {% endif %}
+        {% if watcher.keywords_list and watcher.keywords_list|length > 0 %}
+          <span class="chip"><span class="dot"></span> Keywords: <strong>{{ watcher.keywords_list|join(', ') }}</strong></span>
+        {% endif %}
+      </div>
+      {% if watcher.last_error %}
+        <div class="badge" style="margin-top:10px; background: var(--warn-bg); color: var(--warn-fg); border: 1px solid rgba(245,158,11,.25);">
+          Letzter Hinweis: {{ watcher.last_error }}
+        </div>
+      {% endif %}
+    </div>
+    <div class="right-col">
+      <a class="btn" href="/">Zur Übersicht</a>
+      <a class="btn" href="/watchers/{{ watcher.id }}/edit">Bearbeiten</a>
+      <form method="post" action="/watchers/{{ watcher.id }}/delete" onsubmit="return confirm('Beobachtung wirklich löschen?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-danger" type="submit">Löschen</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="card" style="padding:14px 16px;">
+  <div style="font-weight:900; letter-spacing:-.02em;">Letzte gefundene Job-Links</div>
+  <div class="sub">Best-effort: ATS (Greenhouse/Lever) oder heuristische Link-Sammlung.</div>
+
+  {% if links|length == 0 %}
+    <div style="padding:10px 0; color: var(--muted);">Noch keine Links gespeichert.</div>
+  {% else %}
+    <div class="stack" style="margin-top:12px;">
+      {% for l in links %}
+        <div class="row" style="justify-content:space-between; gap:12px; border-top: 1px solid var(--border); padding-top: 10px;">
+          <div class="grow" style="min-width: 260px;">
+            <div style="font-weight:850;">
+              <a href="{{ l.url }}" target="_blank" rel="noopener" style="color: var(--text); text-decoration:none;">{{ l.title or l.url }}</a>
+            </div>
+            <div class="sub" style="word-break: break-all;">{{ l.url }}</div>
+          </div>
+          <div class="chip"><span class="dot"></span> zuerst gesehen: <strong>{{ l.first_seen_at }}</strong></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+<section class="card" style="padding:14px 16px;">
+  <div style="font-weight:900; letter-spacing:-.02em;">Timeline</div>
+  <div class="sub">Neueste Checks oben. Für’s Debugging bei Blockaden/Timeouts sehr praktisch.</div>
+
+  {% if results|length == 0 %}
+    <div style="padding:10px 0; color: var(--muted);">Noch kein Check durchgeführt. (Timer läuft?)</div>
+  {% else %}
+    <div style="overflow-x:auto; margin-top:10px;">
+      <table style="width:100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="text-align:left; color: var(--muted);">
+            <th style="padding:10px 8px;">Zeit</th>
+            <th style="padding:10px 8px;">Status</th>
+            <th style="padding:10px 8px;">Änderung</th>
+            <th style="padding:10px 8px;">Neue Links</th>
+            <th style="padding:10px 8px;">Keyword-Treffer</th>
+            <th style="padding:10px 8px;">Hinweis</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+            <tr style="border-top: 1px solid var(--border);">
+              <td style="padding:10px 8px; white-space:nowrap;">{{ r.checked_at }}</td>
+              <td style="padding:10px 8px;">
+                {% if r.status=='ok' %}
+                  <span class="badge" style="background: var(--success-bg); color: var(--success-fg); border: 1px solid rgba(34,197,94,.24);">OK</span>
+                {% elif r.status=='blocked' %}
+                  <span class="badge" style="background: var(--warn-bg); color: var(--warn-fg); border: 1px solid rgba(245,158,11,.25);">Blockiert</span>
+                {% else %}
+                  <span class="badge" style="background: var(--danger-bg); color: var(--danger-fg); border: 1px solid rgba(239,68,68,.22);">Fehler</span>
+                {% endif %}
+                {% if r.http_status %}<span class="sub">HTTP {{ r.http_status }}</span>{% endif %}
+              </td>
+              <td style="padding:10px 8px;">{% if r.changed %}✅{% else %}—{% endif %}</td>
+              <td style="padding:10px 8px;">{% if r.new_links_count %}<strong>{{ r.new_links_count }}</strong>{% else %}—{% endif %}</td>
+              <td style="padding:10px 8px;">
+                {% if r.keyword_hits and r.keyword_hits|length>0 %}
+                  {% for k,v in r.keyword_hits.items() %}
+                    <span class="chip" style="margin: 0 6px 6px 0;">{{ k }}: <strong>{{ v }}</strong></span>
+                  {% endfor %}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td style="padding:10px 8px; max-width: 420px;">
+                {% if r.error_message %}
+                  <span class="sub">{{ r.error_message }}</span>
+                {% else %}
+                  {% if r.sample_links and r.sample_links|length>0 %}
+                    <span class="sub">Beispiel-Links: {{ r.sample_links[:3] | map(attribute='url') | join(' · ') }}</span>
+                  {% else %}
+                    —
+                  {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</section>
+
+{% endblock %}

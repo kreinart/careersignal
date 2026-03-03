@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Login – CareerSignal{% endblock %}
+{% block content %}
+<section class="card" style="padding:18px; max-width:520px; margin: 0 auto;">
+  <div style="font-weight:900; font-size: 20px; letter-spacing:-.02em;">Login</div>
+  <div class="sub">Willkommen zurück. (Ja, wir merken uns keine Job-Filter. Absicht.)</div>
+
+  {% if error %}
+    <div class="badge" style="margin-top:12px; background: var(--danger-bg); color: var(--danger-fg); border: 1px solid rgba(239,68,68,.22);">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="post" action="/login" style="margin-top:14px;" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <div>
+      <label for="email">E-Mail</label>
+      <input id="email" name="email" type="email" autocomplete="email" required placeholder="du@beispiel.de">
+    </div>
+
+    <div>
+      <label for="password">Passwort</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+    </div>
+
+    <div class="row" style="justify-content:space-between;">
+      <button class="btn btn-primary" type="submit">Einloggen</button>
+      <a class="btn btn-quiet" href="/register">Neues Konto</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

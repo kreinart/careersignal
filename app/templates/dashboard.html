@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% set active='dashboard' %}
+{% block title %}Beobachtungen – CareerSignal{% endblock %}
+
+{% block content %}
+<section class="card" style="padding:14px 16px;">
+  <div class="row">
+    <div class="grow">
+      <div style="font-weight:900; font-size: 18px; letter-spacing:-.02em;">Beobachtungen</div>
+      <div class="sub">Intervall: ca. {{ interval_minutes }} Minuten (plus Backoff bei Fehlern/Blockade).</div>
+    </div>
+    <a class="btn btn-primary" href="/watchers/new">+ Neue Beobachtung</a>
+  </div>
+</section>
+
+{% if watchers|length == 0 %}
+  <section class="card" style="padding:16px;">
+    <div style="font-weight:850;">Noch keine Beobachtungen.</div>
+    <div class="sub">Leg eine Karriere-Seite an, und CareerSignal pingt sie regelmäßig an.</div>
+    <div style="margin-top:12px;">
+      <a class="btn btn-primary" href="/watchers/new">Jetzt starten</a>
+    </div>
+  </section>
+{% endif %}
+
+{% for w in watchers %}
+  {% set st = (w.last_status or 'ok') %}
+  {% set badge_bg = 'var(--neutral-bg)' %}
+  {% set badge_fg = 'var(--neutral-fg)' %}
+  {% if st=='ok' %}{% set badge_bg = 'var(--success-bg)' %}{% set badge_fg = 'var(--success-fg)' %}{% endif %}
+  {% if st=='failed' %}{% set badge_bg = 'var(--danger-bg)' %}{% set badge_fg = 'var(--danger-fg)' %}{% endif %}
+  {% if st=='blocked' %}{% set badge_bg = 'var(--warn-bg)' %}{% set badge_fg = 'var(--warn-fg)' %}{% endif %}
+
+  <section class="card" style="padding:14px 16px;">
+    <div class="row" style="align-items:flex-start;">
+      <div class="grow" style="min-width: 260px;">
+        <div style="font-weight:900; letter-spacing:-.02em; font-size: 16px;">
+          <a href="/watchers/{{ w.id }}" style="color: var(--text); text-decoration:none;">{{ w.name }}</a>
+        </div>
+        <div class="sub" style="margin-top:4px; word-break: break-all;">{{ w.url }}</div>
+
+        <div class="chips" style="margin-top:10px;">
+          <span class="chip" style="background: {{ badge_bg }}; color: {{ badge_fg }}; border-color: rgba(15,23,42,.08);">
+            Status: <strong style="color:inherit;">{% if st=='ok' %}OK{% elif st=='failed' %}Fehler{% elif st=='blocked' %}Blockiert{% else %}–{% endif %}</strong>
+            {% if w.last_http_status %}<span style="opacity:.85;">(HTTP {{ w.last_http_status }})</span>{% endif %}
+          </span>
+          <span class="chip"><span class="dot"></span> Zuletzt geprüft: <strong>{{ w.last_checked_at or '–' }}</strong></span>
+          <span class="chip"><span class="dot"></span> Nächste Prüfung: <strong>{{ w.next_check_at or '–' }}</strong></span>
+          {% if w.keywords_list and w.keywords_list|length > 0 %}
+            <span class="chip"><span class="dot"></span> Keywords: <strong>{{ w.keywords_list|join(', ') }}</strong></span>
+          {% endif %}
+        </div>
+
+        {% if w.last_error %}
+          <div class="badge" style="margin-top:10px; background: var(--warn-bg); color: var(--warn-fg); border: 1px solid rgba(245,158,11,.25);">
+            Letzter Hinweis: {{ w.last_error }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="right-col">
+        <form method="post" action="/watchers/{{ w.id }}/toggle">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn" type="submit">{% if w.is_active %}Pausieren{% else %}Aktivieren{% endif %}</button>
+        </form>
+        <a class="btn" href="/watchers/{{ w.id }}/edit">Bearbeiten</a>
+        <form method="post" action="/watchers/{{ w.id }}/delete" onsubmit="return confirm('Beobachtung wirklich löschen?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn btn-danger" type="submit">Löschen</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="row" style="gap:10px;">
+      <span class="chip"><span class="dot"></span> Benachrichtigungen:</span>
+      <span class="chip">{% if w.notify_on_change %}✅{% else %}—{% endif %} Änderung</span>
+      <span class="chip">{% if w.notify_on_new_jobs %}✅{% else %}—{% endif %} Neue Jobs/Links</span>
+      <span class="chip">{% if w.notify_on_keyword %}✅{% else %}—{% endif %} Keyword-Treffer</span>
+      {% if w.discord_webhook_override %}
+        <span class="chip">🔔 Discord (pro Beobachtung)</span>
+      {% endif %}
+    </div>
+  </section>
+{% endfor %}
+
+{% endblock %}
